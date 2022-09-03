@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!-- <p>AFSK</p> -->
+    <!------------  AFSKcanvas  ------------>
+    <canvas id="AFSKcanvas"></canvas>
+
+    <!---------------------------------------
+                     Script              
+    _____________________________________-->
+    <script type="text/javascript">
+        const canvas = document.getElementById('AFSKcanvas'),
+            ctx=canvas.getContext('2d'),
+            Width=window.innerWidth,
+            Height=window.innerHeight;
+            canvas.width=Width;
+            canvas.height=Height;
+            canvas.style.background='black';
+            document.body.style.margin=0;
+        // variables
+        var ctrlBits= [1,0,1,1,1,0,0,1,0],
+            bitDur=Width/ctrlBits.length, bitIdx=0,
+            mapBits=new Map(), t=0, step=1, yOffset=Height/3, df=0;
+            var phi=0.02;
+        
+    
+        animSignals();
+        function animSignals(){
+            ctx.clearRect(0,0,Width,Height);
+            init_Signal();
+            drawSignal();
+            drawASKSignal(phi,2);
+            drawFSKSignal(phi,3);
+            phi+=0.02;
+            requestAnimationFrame(animSignals);
+            
+        }
+        // Functions
+        function init_Signal() {
+            for (t=0; t < Width; t+=step) {
+                if (t>=(bitIdx)*bitDur && t<(bitIdx+1)*bitDur) {
+                    mapBits.set(t,ctrlBits[bitIdx]);
+                }else{
+                    bitIdx++;
+                }
+            }
+        }
+
+        function shiftBit() {
+            for (let i=0; i<ctrlBits.length-1 ;i++) {
+                ctrlBits[i]=ctrlBits[i+1];
+            }
+            ctrlBits[ctrlBits.length-1]=(Math.random()>0.5)?1:0;
+        }
+
+        function drawSignal(){
+            ctx.fillStyle= 'white';
+            ctx.strokeStyle='wheat';
+            ctx.moveTo(0, yOffset - yOffset / 2);
+            ctx.lineTo(Width,yOffset-yOffset/2);
+            ctx.stroke();
+            for (const i of mapBits.keys()) {
+                if (mapBits.get(i)==0) {
+                    ctx.beginPath();
+                    ctx.arc(i,yOffset-yOffset/2,2,0,2*Math.PI);
+                    ctx.fill();
+                    ctx.closePath();
+                }else{
+                    ctx.beginPath();
+                    ctx.arc(i,yOffset-yOffset/2-50, 2, 0, 2*Math.PI);
+                    ctx.fill();
+                    ctx.closePath();
+                }
+            }
+        }
+
+        //ASK Signal
+        function drawASKSignal(phase,pos) {
+            ctx.fillStyle = 'white';
+            ctx.strokeStyle = 'wheat';
+            ctx.moveTo(0, pos * yOffset - yOffset/2);
+            ctx.lineTo(Width, pos * yOffset - yOffset/2);
+            ctx.stroke();
+            for (const i of mapBits.keys()) {
+                if (mapBits.get(i) == 0) {
+                    ctx.beginPath();
+                    ctx.arc(i, pos*yOffset-yOffset/2, 2, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.closePath();
+                    df = 0;
+                }
+                else {
+                    ctx.beginPath();
+                    ctx.arc(i, pos*yOffset-yOffset/2-50*Math.sin(2*Math.PI * df + phase), 2, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.closePath();
+                    df +=1/50;
+                }
+            }
+        }
+        //FSK
+        function drawFSKSignal(phase,pos){//phase
+            ctx.fillStyle= '#aaaaaa';
+            ctx.strokeStyle='wheat';
+            ctx.moveTo(0, pos*yOffset - yOffset / 2);
+            ctx.lineTo(Width,pos*yOffset - yOffset / 2);
+            ctx.stroke();
+            for (const i of mapBits.keys()) {
+                if (mapBits.get(i)==0) {
+                    ctx.beginPath();
+                    ctx.arc(i,pos*yOffset-yOffset/2-50*Math.sin(2*Math.PI*df+phase),2,0,2*Math.PI);
+                    ctx.fill();
+                    ctx.closePath();
+                    df+=1/50;
+                }else{
+                    ctx.beginPath();
+                    ctx.arc(i,pos*yOffset-yOffset/2-50*Math.sin(2*Math.PI*df+phase), 2, 0, 2*Math.PI);
+                    ctx.fill();
+                    ctx.closePath();
+                    df+=1/32;
+                }
+            }
+        }
+        
+        
+        </script>
+    <!-- <p>Chord with Ab Bb Eb => Eb+</p> -->
+</body>
+</html>
